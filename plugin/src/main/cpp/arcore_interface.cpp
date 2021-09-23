@@ -121,7 +121,9 @@ void ARCoreInterface::notification(int p_what) {
 				_resume();
 
 				if (init_status == INITIALISE_FAILED) {
-					arvr_server->clear_primary_interface_if(this);
+					if (arvr_server->get_primary_interface() == this) {
+						arvr_server->set_primary_interface(Ref<ARVRInterface>());
+					}
 				}
 			}
 		}; break;
@@ -364,7 +366,7 @@ void ARCoreInterface::process() {
 	}
 
 	// check display rotation
-	int new_display_rotation = godot::android_api->godot_android_get_display_rotation();
+	int new_display_rotation = android_1_2_api->godot_android_get_display_rotation();
 	if (new_display_rotation != display_rotation) {
 		display_rotation = new_display_rotation;
 		if ((display_rotation == 1) || (display_rotation == 3)) {

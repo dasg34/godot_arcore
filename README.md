@@ -23,7 +23,7 @@ Navigate to the `plugin/libs/godot-cpp` directory and follow [these steps](https
 
 **Note:**
 - While this plugin is in development, you'll need to check-out the Godot Engine ARCore branch in
-[PR #41026](https://github.com/godotengine/godot/pull/41026) and compile the runtime for Android and the editor for your desktop.
+[PR #47455](https://github.com/godotengine/godot/pull/47455) and compile the runtime for Android and the editor for your desktop.
 - You need to copy the contents of your Godot build in the folder `modules\gdnative\include` into `plugin/libs/godot-cpp/godot_headers`
 - You need to generate an `api.json` file from the Godot Engine binary built from the Godot Engine 
 ARCore branch and copy this into `plugin/libs/godot-cpp/godot_headers`. See [these instructions](https://github.com/godotengine/godot-cpp#updating-the-apijson-file) for more details.

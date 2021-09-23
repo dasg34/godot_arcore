@@ -39,6 +39,8 @@
 #include "CameraFeed.hpp"
 #include "CameraMatrix.hpp"
 
+#include "gdnative/godot_arcore.h"
+
 #include "include/arcore_c_api.h"
 
 /**
@@ -67,7 +69,7 @@ public:
 	static void _register_methods();
 
 	ARCoreInterface();
-	~ARCoreInterface();
+	virtual ~ARCoreInterface();
 
 	virtual ARVRInterface::Tracking_status get_tracking_status() const;
 

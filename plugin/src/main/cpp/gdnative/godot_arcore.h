@@ -7,6 +7,8 @@
 
 #include <gdnative_api_struct.gen.h>
 
+extern "C" const godot_gdnative_ext_android_1_2_api_struct *android_1_2_api;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

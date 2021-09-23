@@ -9,10 +9,15 @@
 #include <common.h>
 #include "godot_arcore.h"
 
+const godot_gdnative_ext_android_1_2_api_struct *android_1_2_api;
+
 void GDN_EXPORT godot_arcore_gdnative_init(godot_gdnative_init_options *options) {
     godot::Godot::gdnative_init(options);
-    ALOG_ASSERT(godot::android_api->version.major >= 1 && godot::android_api->version.minor >= 2,
-                "GDNative Android API version should be >= 1.2");
+    ALOG_ASSERT(godot::android_api->version.major == 1 && godot::android_api->version.minor == 1, "GDNative Android API is not supported.");
+
+	android_1_2_api = (godot_gdnative_ext_android_1_2_api_struct *) godot::android_api->next;
+	ALOG_ASSERT(android_1_2_api != NULL, "GDNative Android API version 1.2 extension is not supported.");
+    ALOG_ASSERT(android_1_2_api->version.major == 1 && android_1_2_api->version.minor == 2, "GDNative Android API version should be 1.2");
 }
 
 void GDN_EXPORT godot_arcore_gdnative_singleton() {

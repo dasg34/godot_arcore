@@ -14,8 +14,8 @@
             android:value="required" />
 
         <meta-data
-            android:name="org.godotengine.plugin.v1.ARCorePlugin"
-            android:value="org.godotengine.plugin.arcore.ARCorePlugin" />
+            android:name="org.godotengine.plugin.v1.GodotARCore"
+            android:value="org.godotengine.plugin.arcore.GodotARCorePlugin" />
 
         <activity android:name="org.godotengine.plugin.arcore.ARCoreSetupActivity"
             android:label="@string/godot_arcore_setup_activity_label"

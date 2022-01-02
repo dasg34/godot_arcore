@@ -67,6 +67,7 @@ public:
 	static void delete_singleton_instance();
 
 	static void _register_methods();
+	void _init() {}
 
 	ARCoreInterface();
 	virtual ~ARCoreInterface();

@@ -11,12 +11,19 @@
 
 const godot_gdnative_ext_android_1_2_api_struct *android_1_2_api;
 
+template <class T>
+String itos(const T &arg) {
+    return String("{0}").format(Array::make(Variant(arg)));
+}
+
 void GDN_EXPORT godot_arcore_gdnative_init(godot_gdnative_init_options *options) {
     godot::Godot::gdnative_init(options);
+
+
     ALOG_ASSERT(godot::android_api->version.major == 1 && godot::android_api->version.minor == 1, "GDNative Android API is not supported.");
 
 	android_1_2_api = (godot_gdnative_ext_android_1_2_api_struct *) godot::android_api->next;
-	ALOG_ASSERT(android_1_2_api != NULL, "GDNative Android API version 1.2 extension is not supported.");
+	ALOG_ASSERT(android_1_2_api != nullptr, "GDNative Android API version 1.2 extension is not supported.");
     ALOG_ASSERT(android_1_2_api->version.major == 1 && android_1_2_api->version.minor == 2, "GDNative Android API version should be 1.2");
 }
 
@@ -44,8 +51,7 @@ void GDN_EXPORT godot_arcore_gdnative_terminate(godot_gdnative_terminate_options
 
 void *godot_arvr_constructor(godot_object *p_instance) {
 	// we need to return the pointer to the wrapper object for our instance here
-
-	ARCoreInterface *data = godot::detail::get_wrapper<ARCoreInterface>(p_instance);
+	ARCoreInterface *data = ARCoreInterface::get_singleton_instance();
 	return data;
 }
 
@@ -120,7 +126,7 @@ godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
 godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *p_cam_transform) {
 	ARCoreInterface *data = (ARCoreInterface *)p_data;
 
-	godot::Transform *cam_transform = (godot::Transform *)&p_cam_transform;
+	godot::Transform *cam_transform = (godot::Transform *)p_cam_transform;
 	godot::Transform transform = data->get_transform_for_eye((ARVRInterface::Eyes) p_eye, *cam_transform);
 
 	godot_transform *ret_transform = (godot_transform*)&transform;
@@ -162,6 +168,18 @@ void godot_arvr_notification(void *p_data, int p_what) {
 	data->notification(p_what);
 };
 
+int godot_arvr_get_camera_feed_id(void *p_data)
+{
+    ARCoreInterface *data = (ARCoreInterface *)p_data;
+
+    return data->get_camera_feed_id();
+}
+
+int godot_arvr_get_external_depth_for_eye(void *p_data, int p_eye) {
+    // stub
+    return 0;
+}
+
 const godot_arvr_interface_gdnative arvr_interface_struct = {
 	{ GODOTVR_API_MAJOR, GODOTVR_API_MINOR }, godot_arvr_constructor,
 	godot_arvr_destructor, godot_arvr_get_name, godot_arvr_get_capabilities,
@@ -172,5 +190,6 @@ const godot_arvr_interface_gdnative arvr_interface_struct = {
 	godot_arvr_fill_projection_for_eye, godot_arvr_commit_for_eye,
 	godot_arvr_process,
 	// only available in Godot 3.2+
-	godot_arvr_get_external_texture_for_eye, godot_arvr_notification
+	godot_arvr_get_external_texture_for_eye, godot_arvr_notification,
+	godot_arvr_get_camera_feed_id, godot_arvr_get_external_depth_for_eye
 };

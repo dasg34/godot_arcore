@@ -62,6 +62,13 @@ void ARCoreInterface::delete_singleton_instance() {
 	singleton_instance = nullptr;
 }
 
+extern "C" JNIEXPORT void JNICALL
+Java_org_godotengine_plugin_arcore_GodotARCorePlugin_godotARCoreInit(
+        JNIEnv *env,
+        jobject /* this */) {
+    godot::arvr_api->godot_arvr_register_interface(&arvr_interface_struct);
+}
+
 String ARCoreInterface::get_name() const {
 	return "ARCore";
 }
@@ -121,7 +128,7 @@ void ARCoreInterface::notification(int p_what) {
 				_resume();
 
 				if (init_status == INITIALISE_FAILED) {
-					if (arvr_server->get_primary_interface() == this) {
+					if (arvr_server->get_primary_interface() == arvr_server->find_interface("ARCore")) {
 						arvr_server->set_primary_interface(Ref<ARVRInterface>());
 					}
 				}
@@ -223,8 +230,8 @@ bool ARCoreInterface::initialize() {
 
 		if (init_status != INITIALISE_FAILED) {
 			// make this our primary interface
-			arvr_server->set_primary_interface(this);
 
+			arvr_server->set_primary_interface(arvr_server->find_interface("ARCore"));
 			// make sure our feed is marked as active if we already have one...
 			if (feed != nullptr) {
 				feed->set_active(true);
@@ -385,8 +392,7 @@ void ARCoreInterface::process() {
 		// Also this is a YCbCr texture, not RGB, should probably add a format for that some day :)
 		feed->_set_external(width, height);
 		RID camera_texture = feed->get_texture(CameraServer::FEED_RGBA_IMAGE);
-		godot_rid camera_texture_rid = camera_texture._get_godot_rid();
-		camera_texture_id = godot::arvr_api->godot_arvr_get_texid(&camera_texture_rid);
+		camera_texture_id = VisualServer::get_singleton()->texture_get_texid(camera_texture);
 
 		Godot::print("Godot ARCore: Created: " + String::num_int64(camera_texture_id));
 	}
@@ -528,7 +534,7 @@ void ARCoreInterface::process() {
 	}
 
 	// mark anchors as stale
-	make_anchors_stale();
+	//make_anchors_stale();
 
 	// Now need to handle our anchors and such....
 	ArTrackableList *plane_list = nullptr;
@@ -552,14 +558,14 @@ void ARCoreInterface::process() {
 			ArTrackable *ar_trackable = nullptr;
 			ArTrackableList_acquireItem(ar_session, plane_list, i, &ar_trackable);
 			ArPlane *ar_plane = ArAsPlane(ar_trackable);
-
+/*
 			ArTrackingState out_tracking_state;
 			ArTrackable_getTrackingState(ar_session, ar_trackable, &out_tracking_state);
-			if (out_tracking_state != ArTrackingState::AR_TRACKING_STATE_TRACKING) {
+			if (out_tracking_state == ArTrackingState::AR_TRACKING_STATE_STOPPED) {
 				Godot::print(String("Godot ARCore: not tracking plane ") + String::num_int64(i));
 				continue;
 			}
-
+*/
 			// subsume this plane, I'm not sure what that means, we don't seem to use the result...
 			ArPlane *subsume_plane;
 			ArPlane_acquireSubsumedBy(ar_session, ar_plane, &subsume_plane);
@@ -573,7 +579,7 @@ void ARCoreInterface::process() {
 			// grabbing the tracking state again, not sure why...
 			ArTrackingState plane_tracking_state;
 			ArTrackable_getTrackingState(ar_session, ArAsTrackable(ar_plane), &plane_tracking_state);
-			if (plane_tracking_state == ArTrackingState::AR_TRACKING_STATE_TRACKING) {
+			if (plane_tracking_state != ArTrackingState::AR_TRACKING_STATE_STOPPED) {
 				// now we need to check if we have this as a tracking in Godot...
 				anchor_map *am = nullptr;
 
@@ -592,7 +598,7 @@ void ARCoreInterface::process() {
 					am->stale = false;
 
 					// create our tracker
-					am->tracker = new ARVRPositionalTracker;
+					am->tracker = ARVRPositionalTracker::_new();
 					am->tracker->_set_name(String("Anchor ") + String::num_int64(last_anchor_id++));
 					am->tracker->_set_type(ARVRServer::TRACKER_ANCHOR);
 
@@ -632,12 +638,13 @@ void ARCoreInterface::process() {
 					// TODO should now get the polygon data and build our mesh
 				}
 			} else {
+				anchor_map *am = anchors[ar_plane];
+				am->stale = true;
 				Godot::print(String("Godot ARCore: huh? I thought we were tracking plane ") + String::num_int64(i));
 			}
 		}
 
 		ArTrackableList_destroy(plane_list);
-
 		// now we remove our stale trackers..
 		remove_stale_anchors();
 	}
